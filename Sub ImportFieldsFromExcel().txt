@@ -1,0 +1,33 @@
+Sub ImportFieldsFromExcel()
+    Dim xlApp As Object
+    Dim xlWorkbook As Object
+    Dim xlWorksheet As Object
+    Dim doc As Document
+    Dim ff As FormField
+    Dim i As Integer
+    Dim lastRow As Long
+
+    Set doc = ActiveDocument
+
+    ' Open an existing Excel application
+    Set xlApp = GetObject(, "Excel.Application")
+    Set xlWorkbook = xlApp.ActiveWorkbook
+    Set xlWorksheet = xlWorkbook.ActiveSheet
+
+    ' Determine the last row with data in the Excel worksheet
+    lastRow = xlWorksheet.Cells(xlWorksheet.Rows.count, 1).End(-4162).Row ' -4162 is xlUp
+
+    ' Loop through each row in the Excel worksheet
+    For i = 1 To lastRow
+        For Each ff In doc.FormFields
+            If ff.Name = xlWorksheet.Cells(i, 1).Value Then
+                ff.Result = xlWorksheet.Cells(i, 2).Value
+                Exit For
+            End If
+        Next ff
+    Next i
+
+    ' Inform the user
+    MsgBox "Data imported successfully!"
+End Sub
+

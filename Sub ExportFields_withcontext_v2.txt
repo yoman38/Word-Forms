@@ -1,0 +1,49 @@
+Sub ExportFieldsToExcel()
+    Dim xlApp As Object
+    Dim xlWorkbook As Object
+    Dim xlWorksheet As Object
+    Dim doc As Document
+    Dim ff As FormField
+    Dim rngContext As Range
+    Dim i As Integer
+    Dim startContext As Long
+    Dim endContext As Long
+    Const ContextLength As Long = 40
+
+    Set doc = ActiveDocument
+
+    ' Create a new Excel application
+    Set xlApp = CreateObject("Excel.Application")
+    Set xlWorkbook = xlApp.Workbooks.Add
+    Set xlWorksheet = xlWorkbook.Worksheets(1)
+
+    ' Set column widths
+    xlWorksheet.Columns("A:C").ColumnWidth = 30
+
+    ' Add header to the Excel
+    xlWorksheet.Cells(1, 1).Value = "Field Name"
+    xlWorksheet.Cells(1, 2).Value = "Field Value"
+    xlWorksheet.Cells(1, 3).Value = "Context"
+
+    ' Loop through each form field in the Word document
+    i = 2 ' Start from the second row in Excel as the first row is for headers
+    For Each ff In doc.FormFields
+        ' Get the context around the form field
+        startContext = ff.Range.Start - ContextLength
+        If startContext < 0 Then startContext = 0
+        
+        endContext = ff.Range.End + ContextLength
+        If endContext > doc.Content.End Then endContext = doc.Content.End
+        
+        Set rngContext = doc.Range(startContext, endContext)
+        
+        ' Write data to Excel
+        xlWorksheet.Cells(i, 1).Value = ff.Name
+        xlWorksheet.Cells(i, 2).Value = ff.Result
+        xlWorksheet.Cells(i, 3).Value = rngContext.Text
+        i = i + 1
+    Next ff
+
+    ' Make Excel visible to the user
+    xlApp.Visible = True
+End Sub

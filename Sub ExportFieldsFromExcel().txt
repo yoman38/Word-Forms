@@ -1,0 +1,27 @@
+Sub ExportFieldsToExcel()
+    Dim xlApp As Object
+    Dim xlWorkbook As Object
+    Dim xlWorksheet As Object
+    Dim doc As Document
+    Dim ff As FormField
+    Dim i As Integer
+
+    Set doc = ActiveDocument
+
+    ' Create a new Excel application
+    Set xlApp = CreateObject("Excel.Application")
+    Set xlWorkbook = xlApp.Workbooks.Add
+    Set xlWorksheet = xlWorkbook.Worksheets(1)
+
+    ' Loop through each form field in the Word document
+    i = 1
+    For Each ff In doc.FormFields
+        xlWorksheet.Cells(i, 1).Value = ff.Name
+        xlWorksheet.Cells(i, 2).Value = ff.Result
+        i = i + 1
+    Next ff
+
+    ' Make Excel visible to the user
+    xlApp.Visible = True
+End Sub
+

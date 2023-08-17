@@ -1,0 +1,33 @@
+Sub CreateFormFieldsForHighlightedGroups()
+
+    Dim doc As Document
+    Dim searchRange As Range, foundRange As Range
+    Dim ff As FormField
+    Dim defaultText As String
+    
+    Set doc = ActiveDocument
+    Set searchRange = doc.Content
+
+    With searchRange.Find
+        .ClearFormatting
+        .Highlight = True
+        .Text = ""
+        .Forward = True
+        .Wrap = wdFindStop
+
+        While .Execute
+            Set foundRange = searchRange.Duplicate
+            defaultText = foundRange.Text
+            Set ff = doc.FormFields.Add(Range:=foundRange, Type:=wdFieldFormTextInput)
+            ff.Result = defaultText
+            ff.Range.HighlightColorIndex = wdNoHighlight
+            searchRange.Start = ff.Range.End + 1
+        Wend
+    End With
+
+    ' Protect the document for form filling
+    doc.Protect Type:=wdAllowOnlyFormFields, NoReset:=True
+
+    MsgBox "Form created successfully!"
+
+End Sub

@@ -1,0 +1,76 @@
+Sub DuplicateOperationTable()
+
+    Dim numOfOperations As Integer
+    Dim doc As Document
+    Dim tbl As Table
+    Dim rng As Range
+    Dim i As Integer
+
+    ' Reference the active document
+    Set doc = ActiveDocument
+
+    ' Unprotect the document
+    doc.Unprotect
+
+    ' Check if the document has tables
+    If doc.Tables.Count = 0 Then
+        MsgBox "No tables found in the document!"
+        Exit Sub
+    End If
+    
+    ' Reference the first table (assuming it's your template)
+    Set tbl = doc.Tables(1)
+
+    ' Ask user for the number of operations
+    numOfOperations = InputBox("Enter the number of operations:", "Number of Operations")
+
+    ' Loop to copy and paste the table
+    For i = 1 To numOfOperations
+        If i > 1 Then
+            ' Duplicate the table and maintain form fields
+            DuplicateTableWithFormFields tbl
+            
+            ' Set the tbl object to the last table for the next iteration
+            Set tbl = doc.Tables(doc.Tables.Count)
+        End If
+        
+        ' Update the operation number of the table
+        tbl.Cell(1, 1).Range.Text = "Opération n°" & i
+    Next i
+
+    ' Protect the document again for form filling
+    doc.Protect Type:=wdAllowOnlyFormFields, NoReset:=True
+
+    ' Inform the user
+    MsgBox numOfOperations & " tables generated successfully!"
+End Sub
+
+Sub DuplicateTableWithFormFields(tbl As Table)
+    Dim rngCopy As Range
+    Dim rngPaste As Range
+    Dim formFieldsPositions() As Long
+    Dim i As Integer
+    Dim count As Integer
+    Dim newFieldRange As Range
+    
+    ' Capture positions of form fields
+    count = 0
+    For Each ff In tbl.Range.FormFields
+        ReDim Preserve formFieldsPositions(count)
+        formFieldsPositions(count) = ff.Range.Start - tbl.Range.Start
+        count = count + 1
+    Next ff
+
+    ' Copy and paste the table
+    Set rngCopy = tbl.Range
+    rngCopy.Copy
+    Set rngPaste = rngCopy.Duplicate
+    rngPaste.Collapse wdCollapseEnd
+    rngPaste.Paste
+    
+    ' Recreate the form fields in the new table
+    For i = 0 To count - 1
+        Set newFieldRange = rngPaste.Tables(1).Range.Characters(formFieldsPositions(i)).Duplicate
+        ActiveDocument.FormFields.Add Range:=newFieldRange, Type:=wdFieldFormTextInput
+    Next i
+End Sub
